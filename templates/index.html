@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonomous Coding Agent</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">&lt;/&gt;</span>
+      <div>
+        <h1>Autonomous Coding Agent</h1>
+        <p>Describe a task. The agent plans, writes, runs, tests and debugs the code &mdash; you approve the result.</p>
+      </div>
+    </div>
+    <div class="meta"><span id="modelBadge" class="badge">model: …</span><span id="limitBadge" class="badge">timeout: …</span></div>
+  </header>
+
+  <div id="banner" class="banner hidden" role="alert"></div>
+
+  <main class="layout">
+    <section class="card" id="taskCard">
+      <h2>New coding task</h2>
+      <textarea id="task" rows="6" maxlength="4000" placeholder="e.g. Write an LRU cache class with get/put in O(1) and handle capacity edge cases."></textarea>
+      <div class="row">
+        <label class="field">Language
+          <select id="language"><option value="python">Python</option></select>
+        </label>
+        <label class="field">Max debug iterations
+          <select id="maxIter"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+        </label>
+      </div>
+      <div class="row buttons">
+        <button id="startBtn" class="btn primary">▶ Start Agent</button>
+        <button id="clearBtn" class="btn">Clear</button>
+        <button id="resetBtn" class="btn danger">Reset</button>
+      </div>
+      <div class="samples"><span class="muted">Try:</span><span id="samples"></span></div>
+    </section>
+
+    <section class="card" id="workflowCard">
+      <div class="card-head"><h2>Agent workflow</h2><span id="statusBadge" class="pill pending">Idle</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <ol id="stages" class="stages"></ol>
+    </section>
+
+    <section class="card wide-left" id="editorCard">
+      <div class="card-head">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="code">solution.py</button>
+          <button class="tab" data-tab="tests">test_solution.py</button>
+          <button class="tab" data-tab="spec">Spec &amp; plan</button>
+        </div>
+        <div class="actions">
+          <button id="copyBtn" class="btn small">Copy</button>
+          <button id="downloadBtn" class="btn small">Download</button>
+          <button id="runBtn" class="btn small" disabled>Run edited code</button>
+        </div>
+      </div>
+      <div id="paneCode" class="pane"></div>
+      <div id="paneTests" class="pane hidden"></div>
+      <div id="paneSpec" class="pane hidden spec"><p class="muted">The structured specification and plan appear here.</p></div>
+      <div id="approveBar" class="approve hidden">
+        <div id="approveMsg"></div>
+        <label class="check"><input type="checkbox" id="gitCommit"> also commit locally with git (never pushed)</label>
+        <button id="approveBtn" class="btn primary">✔ Approve &amp; save</button>
+      </div>
+    </section>
+
+    <div class="side">
+      <section class="card" id="testsCard">
+        <div class="card-head"><h2>Test results</h2><span id="testBadge" class="pill pending">No run yet</span></div>
+        <div class="stats">
+          <div><b id="statTotal">–</b><span>Total</span></div>
+          <div class="good"><b id="statPassed">–</b><span>Passed</span></div>
+          <div class="bad"><b id="statFailed">–</b><span>Failed</span></div>
+          <div><b id="statTime">–</b><span>Time</span></div>
+        </div>
+        <ul id="cases" class="cases"></ul>
+        <pre id="errors" class="errors hidden"></pre>
+      </section>
+
+      <section class="card" id="logsCard">
+        <div class="card-head"><h2>Agent logs</h2></div>
+        <div id="logs" class="logs" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <section class="card full" id="historyCard">
+      <div class="card-head"><h2>Session history</h2><span class="muted">tasks and iterations from this browser session</span></div>
+      <div class="history-grid">
+        <ul id="taskList" class="task-list"></ul>
+        <div id="iterations" class="iterations"><p class="muted">Select a task to inspect its iterations.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">Code runs in a local subprocess with timeouts &mdash; this is <b>not</b> a fully secure sandbox. Review code before using it.</footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
